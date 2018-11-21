@@ -53,15 +53,9 @@ public class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
         super.configure(http);
         http.authorizeRequests()
                 // TODO Add protected resources
-                .antMatchers("/dialog/aquire/service/*")
-                .hasAnyRole("user", "admin")
                 .antMatchers("/dialog/aquire/*")
                 .hasAnyRole("user", "admin")
                 .antMatchers("/dialog/save/*")
-                .hasAnyRole("user", "admin")
-                .antMatchers("/comments/aquire/service/*")
-                .hasAnyRole("user", "admin")
-                .antMatchers("/comments/aquire/*")
                 .hasAnyRole("user", "admin")
                 .antMatchers("/comments/save/*")
                 .hasAnyRole("user", "admin")
