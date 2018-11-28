@@ -73,7 +73,12 @@ The request body should have this structure:
 ```
 ```fromServiceProvider``` means that messege was sent from service owner, if true, and vice versa otherwise. 
 
-#### To get all messeges:
+#### To get all dialogs' last message of the specific service provider:
+```
+GET http://dialog/aquire/service/{service_id}
+```
+
+#### To get all messages:
 ```
 GET http://localhost:8000/dialog/aquire/all
 ```
