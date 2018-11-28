@@ -7,5 +7,5 @@ import org.springframework.data.repository.CrudRepository;
 public interface CommentRepository extends CrudRepository<Comment,Long>{
 	List<Comment> findByServiceIdAndCustomerId(Long serviceId, Long customerId);
 	List<Comment> findByServiceId(Long serviceId);
-	void deleteByCommentId(Long CommentId);
+	void deleteByCustomerIdAndServiceId(Long customerId, Long serviceId);
 }

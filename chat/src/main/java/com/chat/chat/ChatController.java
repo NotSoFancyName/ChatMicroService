@@ -8,8 +8,12 @@ import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.List;
+import java.util.Set;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -126,10 +130,10 @@ public class ChatController {
 		    return comments;
 	  }	
 	  
-	  @DeleteMapping("/comments/delete/service/{service_id}/comment/{comment_id}")
-	  public HttpStatus deleteCommentByCommentId(@PathVariable Long service_id,@PathVariable Long comment_id)
+	  @DeleteMapping("/comments/delete/service/{service_id}/comment/{customer_id}")
+	  public HttpStatus deleteCommentByCommentId(@PathVariable Long service_id,@PathVariable Long customer_id)
 	  {
-		    commentRepository.deleteByCommentId(comment_id);
+		    commentRepository.deleteByCustomerIdAndServiceId(customer_id,service_id);
 		    return HttpStatus.OK;
 	  }	
 	  
@@ -146,5 +150,24 @@ public class ChatController {
 	  {
 		    messegeRepository.deleteById(inner_id);
 		    return HttpStatus.OK;
+	  }	
+	  
+	  @GetMapping("/dialog/aquire/service/{service_id}")
+	  public List<Messege>  retrieveDialogsWithCustomers
+	    (@PathVariable Long service_id){
+		  		    
+		    List<Messege> messeges = messegeRepository.findByServiceIdOrderByTimeDesc(service_id);
+		    
+		    HashSet<Long> isPresent = new HashSet<Long>();	
+		    List<Messege> firstMessagesInTheDialogs = new ArrayList<Messege>();
+		    
+		    for(Messege m:messeges) {
+		    	if(!isPresent.contains(m.getCustomerId())) {
+		    		isPresent.add(m.getCustomerId());
+		    		firstMessagesInTheDialogs.add(m);
+		    	}
+		    }
+		    
+		    return firstMessagesInTheDialogs;
 	  }	
 }
