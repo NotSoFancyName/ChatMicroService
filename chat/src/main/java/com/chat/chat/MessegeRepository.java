@@ -7,4 +7,5 @@ import com.chat.chat.Messege;
 
 public interface MessegeRepository extends CrudRepository<Messege, Long>{
 	List<Messege> findByServiceIdAndCustomerId(Long serviceId, Long customerId);
+	List<Messege> findByServiceIdOrderByTimeDesc(Long serviceId);
 }

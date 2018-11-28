@@ -8,8 +8,12 @@ import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.List;
+import java.util.Set;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -21,9 +25,11 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
@@ -122,5 +128,46 @@ public class ChatController {
 	  {
 		    List<Comment> comments = (List<Comment>) commentRepository.findByServiceId(service_id);
 		    return comments;
+	  }	
+	  
+	  @DeleteMapping("/comments/delete/service/{service_id}/comment/{customer_id}")
+	  public HttpStatus deleteCommentByCommentId(@PathVariable Long service_id,@PathVariable Long customer_id)
+	  {
+		    commentRepository.deleteByCustomerIdAndServiceId(customer_id,service_id);
+		    return HttpStatus.OK;
+	  }	
+	  
+	  
+	  @DeleteMapping("/comments/delete/{inner_id}")
+	  public HttpStatus deleteCommentById(@PathVariable Long inner_id)
+	  {
+		    commentRepository.deleteById(inner_id);
+		    return HttpStatus.OK;
+	  }	
+	  
+	  @DeleteMapping("/dialog/delete/{inner_id}")
+	  public HttpStatus deleteMessegeById(@PathVariable Long inner_id)
+	  {
+		    messegeRepository.deleteById(inner_id);
+		    return HttpStatus.OK;
+	  }	
+	  
+	  @GetMapping("/dialog/aquire/service/{service_id}")
+	  public List<Messege>  retrieveDialogsWithCustomers
+	    (@PathVariable Long service_id){
+		  		    
+		    List<Messege> messeges = messegeRepository.findByServiceIdOrderByTimeDesc(service_id);
+		    
+		    HashSet<Long> isPresent = new HashSet<Long>();	
+		    List<Messege> firstMessagesInTheDialogs = new ArrayList<Messege>();
+		    
+		    for(Messege m:messeges) {
+		    	if(!isPresent.contains(m.getCustomerId())) {
+		    		isPresent.add(m.getCustomerId());
+		    		firstMessagesInTheDialogs.add(m);
+		    	}
+		    }
+		    
+		    return firstMessagesInTheDialogs;
 	  }	
 }
