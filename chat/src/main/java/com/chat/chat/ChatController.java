@@ -156,7 +156,7 @@ public class ChatController {
 	  public List<Messege>  retrieveDialogsWithCustomers
 	    (@PathVariable Long service_id){
 		  		    
-		    List<Messege> messeges = messegeRepository.findByServiceIdOrderByTimeDesc(service_id);
+		    List<Messege> messeges = messegeRepository.findByServiceIdOrderByIdDesc(service_id);
 		    
 		    HashSet<Long> isPresent = new HashSet<Long>();	
 		    List<Messege> firstMessagesInTheDialogs = new ArrayList<Messege>();
