@@ -18,7 +18,7 @@ public class Messege {
 	    private Long id;
 	    
 	    private Long serviceId;
-		private Long customerId;
+		private String customerId;
 	    
 	    private LocalDateTime time;
 	    
@@ -30,7 +30,7 @@ public class Messege {
 	    
 	    Messege(){}
 	    
-	    Messege(Long serviceId, Long customerId, String messegeBody, Boolean fromServiceProvider){
+	    Messege(Long serviceId, String customerId, String messegeBody, Boolean fromServiceProvider){
 	    	this.serviceId = serviceId;
 	    	this.customerId = customerId;
 	    	this.setMessegeBody(messegeBody);
@@ -72,10 +72,10 @@ public class Messege {
 		public void setServiceId(Long serviceId) {
 			this.serviceId = serviceId;
 		}
-		public Long getCustomerId() {
+		public String getCustomerId() {
 			return customerId;
 		}
-		public void setCustomerId(Long customerId) {
+		public void setCustomerId(String customerId) {
 			this.customerId = customerId;
 		}
 }

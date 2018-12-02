@@ -14,7 +14,7 @@ public class Comment {
     private Long id;
     
     private Long serviceId;
-    private Long customerId;
+    private String customerId;
     
     private LocalDateTime time;
     private double rating;
@@ -32,10 +32,10 @@ public class Comment {
 	public void setServiceId(Long serviceId) {
 		this.serviceId = serviceId;
 	}
-	public Long getCustomerId() {
+	public String getCustomerId() {
 		return customerId;
 	}
-	public void setCustomerId(Long customerId) {
+	public void setCustomerId(String customerId) {
 		this.customerId = customerId;
 	}
 	public double getRating() {

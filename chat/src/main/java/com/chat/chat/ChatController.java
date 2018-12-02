@@ -51,7 +51,7 @@ public class ChatController {
 	  
 	  @GetMapping("/dialog/aquire/service/{servise_id}/customer/{customer_id}")
 	  public List<Messege>  retrieveMesseges
-	    (@PathVariable Long servise_id, @PathVariable Long customer_id){
+	    (@PathVariable Long servise_id, @PathVariable String customer_id){
 		  		    
 		    List<Messege> messeges = messegeRepository.findByServiceIdAndCustomerId(servise_id, customer_id);
 		    return messeges;
@@ -131,7 +131,7 @@ public class ChatController {
 	  }	
 	  
 	  @DeleteMapping("/comments/delete/service/{service_id}/comment/{customer_id}")
-	  public HttpStatus deleteCommentByCommentId(@PathVariable Long service_id,@PathVariable Long customer_id)
+	  public HttpStatus deleteCommentByCommentId(@PathVariable Long service_id,@PathVariable String customer_id)
 	  {
 		    commentRepository.deleteByCustomerIdAndServiceId(customer_id,service_id);
 		    return HttpStatus.OK;
@@ -158,7 +158,7 @@ public class ChatController {
 		  		    
 		    List<Messege> messeges = messegeRepository.findByServiceIdOrderByIdDesc(service_id);
 		    
-		    HashSet<Long> isPresent = new HashSet<Long>();	
+		    HashSet<String> isPresent = new HashSet<String>();	
 		    List<Messege> firstMessagesInTheDialogs = new ArrayList<Messege>();
 		    
 		    for(Messege m:messeges) {
