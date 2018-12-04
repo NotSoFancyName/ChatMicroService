@@ -4,6 +4,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -17,6 +18,10 @@ import java.util.Set;
 
 import javax.net.ssl.HttpsURLConnection;
 
+import org.json.*;
+import org.keycloak.RSATokenVerifier;
+import org.keycloak.common.VerificationException;
+import org.keycloak.representations.AccessToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpEntity;
@@ -31,10 +36,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.springframework.web.util.UriComponentsBuilder;
+
 
 @RestController
 public class ChatController {
@@ -58,12 +65,16 @@ public class ChatController {
 	  }	 
 	  
 	  @PostMapping("/dialog/save")
-	  public ResponseEntity<Object> saveMessege(@RequestBody Messege messege){
+	  public ResponseEntity<Object> saveMessege(@RequestBody Messege messege,
+			  @RequestHeader(value="Authorization") String Authorization){
 		messege.setTime(LocalDateTime.now());
 		Messege savedMessege = messegeRepository.save(messege);
 	  	URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
 	  			.buildAndExpand(savedMessege.getId()).toUri();
-	  	return ResponseEntity.created(location).build();
+	  	if(checkAuthority(trancate(Authorization),messege.getCustomerId(),messege.getServiceId()))
+	  		return ResponseEntity.created(location).build(); 
+	  	else
+	  		return new ResponseEntity(HttpStatus.FORBIDDEN);
 	  }
 	  
 	  @GetMapping("/dialog/aquire/all")
@@ -81,38 +92,9 @@ public class ChatController {
 	  			.buildAndExpand(savedComment.getId()).toUri();
 	    
 	  	/*
-	     * Sending HTTP request to Services microservice
+	     * Sending HTTP request to Services service
 	     */ 
-		String url = String.format("https://localhost:8762/api/sevices/sevices/add_mark/%s/%s",
-				comment.getServiceId(),comment.getRating());
-		try {
-			URL obj = new URL(url);
-			HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
-	
-			con.setRequestMethod("POST");
-			con.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
-			String urlParameters = "";
-			
-			con.setDoOutput(true);
-			DataOutputStream wr = new DataOutputStream(con.getOutputStream());
-			wr.writeBytes(urlParameters);
-			wr.flush();
-			wr.close();
-			
-			if(con.getResponseCode() == HttpStatus.OK.ordinal()){
-				System.out.println("Status OK");
-			}else {
-				System.out.println("Failed to sent raiting to Srvice Service");
-				throw new IOException();
-			}
-		}
-		catch(IOException e) {
-			e.printStackTrace();
-		    return ResponseEntity
-		            .status(HttpStatus.INTERNAL_SERVER_ERROR)
-		            .body("Failed to sent raiting to Srvice Service");
-		}
-		
+	  	sendRating(comment.getServiceId(),comment.getRating());
 	  	return ResponseEntity.created(location).build();
 	  }
 	  
@@ -170,4 +152,70 @@ public class ChatController {
 		    
 		    return firstMessagesInTheDialogs;
 	  }	
+	  
+	  
+	  public Boolean checkAuthority(String tokenString,String customerId,Long serviceId) {
+		  	try
+		  	{
+		  	  AccessToken token = RSATokenVerifier.create(tokenString).getToken();
+		  	  System.out.println(token.toString());
+		  	  System.out.println(token.getSubject());
+		  	  if(token.getSubject().equals(customerId))
+		  		  return true;
+		  	  else 
+		  		  return checkServiceOwner(serviceId,token.getSubject());
+		  	}
+		  	catch (VerificationException e)
+		  	{
+		  		e.printStackTrace();
+		  		return false;
+		  	}
+	  }
+	  
+	  public String trancate(String stringToBeTrancated) {		  
+		  return stringToBeTrancated.substring(6).trim();
+	  } 
+	  
+	  public String post(String uri, String json) {   
+			   String server = "http://35.244.186.40";
+			   RestTemplate rest = new RestTemplate();
+			   HttpHeaders headers = new HttpHeaders();
+			   headers.add("Content-Type", "application/json");
+			   headers.add("Accept", "*/*");
+			   
+				System.out.println(server + uri);
+			   
+			   HttpEntity<String> requestEntity = new HttpEntity<String>(json, headers);
+			   ResponseEntity<String> responseEntity = rest.exchange(server + uri, HttpMethod.POST, requestEntity, String.class);
+			   HttpStatus status = responseEntity.getStatusCode();
+			   
+			   System.out.println(status);
+			   System.out.println(responseEntity.getBody());
+			   
+			   return responseEntity.getBody();
+		  }
+	  
+	  public ResponseEntity<String> sendRating(Long serviceId, Double rating) {	
+			String url = String.format("/services/add_mark/%s/%s", serviceId, rating);
+			try {
+				JSONObject obj = new JSONObject(post(url,""));
+				if(obj.getInt("code") == HttpStatus.OK.value()){
+					System.out.println("Status OK");
+				}else {
+					System.out.println("FAILED TO SENT RATING");
+					throw new Exception();
+				}
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+			    return ResponseEntity
+			            .status(HttpStatus.INTERNAL_SERVER_ERROR)
+			            .body("Failed to sent raiting to Srvices Service");
+			}
+			return new ResponseEntity<String>(HttpStatus.OK);
+	  }
+	  
+	  public Boolean checkServiceOwner(Long serviceId,String customerId){	  
+		  return true;
+	  }
 }
