@@ -215,8 +215,7 @@ public class ChatController {
 	  
 	  /*
 	   * Delete 'Bearer' and spaces
-	   */
-	  
+	   */ 
       public String trancate(String stringToBeTrancated) {		  
 		  return stringToBeTrancated.substring(6).trim();
 	  } 
@@ -239,7 +238,6 @@ public class ChatController {
 			   
 			   return responseEntity.getBody();
 		  }
-	  
 	  
 	  public String getRequestToGetServiceInfo(String uri, Long serviceId) {
 		  
@@ -297,14 +295,13 @@ public class ChatController {
 				return false;
 		  }
 	  }
-	  
-	  
-	  @GetMapping("/health")
+	    
+	  @GetMapping("/check/health")
 	  public HttpStatus testHealth() {
 	    return HttpStatus.OK;
 	  }
 
-	  @GetMapping("/liveness")
+	  @GetMapping("/check/liveness")
 	  public HttpStatus testLiveness() {
 	    return HttpStatus.OK;
 	  }
