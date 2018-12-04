@@ -70,7 +70,6 @@ class keycloakConfig extends KeycloakWebSecurityConfigurerAdapter {
         http.csrf().disable();
         http.cors();
         http.authorizeRequests()
-                // TODO Add protected resources
                 .antMatchers("/dialog/aquire/*")
                 .hasAnyRole("user", "admin")
                 .antMatchers("/dialog/save/*")
