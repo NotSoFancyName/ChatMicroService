@@ -193,8 +193,7 @@ public class ChatController {
 		    
 		    return firstMessagesInTheDialogs;
 	  }	
-	  
-	  
+	  	  
 	  public Boolean checkAuthority(String tokenString,String customerId) {
 		  	try
 		  	{
@@ -297,5 +296,16 @@ public class ChatController {
 				e.printStackTrace();
 				return false;
 		  }
+	  }
+	  
+	  
+	  @GetMapping("/health")
+	  public HttpStatus testHealth() {
+	    return HttpStatus.OK;
+	  }
+
+	  @GetMapping("/liveness")
+	  public HttpStatus testLiveness() {
+	    return HttpStatus.OK;
 	  }
 }
