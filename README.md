@@ -20,6 +20,11 @@ Or you can build the JAR file with:
 ```
 ./mvnw clean package
 ```
+
+#### Build without tests
+```
+mvn package -Dmaven.test.skip=true
+```
 #### Run
 Then you can run the JAR file:
 ```
