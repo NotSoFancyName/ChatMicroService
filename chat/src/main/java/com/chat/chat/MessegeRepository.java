@@ -9,5 +9,6 @@ public interface MessegeRepository extends CrudRepository<Messege, Long>{
 	List<Messege> findByServiceIdAndCustomerId(Long serviceId, String customerId);
 	List<Messege> findByServiceId(Long serviceId);
 	List<Messege> findByServiceIdOrderByIdDesc(Long serviceId);
+	List<Messege> findByCustomerIdOrderByIdDesc(String CustomerId);
 	void deleteById(Long id);
 }

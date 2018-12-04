@@ -30,6 +30,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -54,27 +56,36 @@ public class ChatController {
 	  @Autowired
 	  private MessegeRepository messegeRepository;
 	  
-	  private final Long maxTriesQuantity = 30L;
-	  
 	  @GetMapping("/dialog/aquire/service/{servise_id}/customer/{customer_id}")
-	  public List<Messege>  retrieveMesseges
-	    (@PathVariable Long servise_id, @PathVariable String customer_id){
+	  public Object retrieveMesseges
+	    (@PathVariable Long servise_id, @PathVariable String customer_id,
+	    		@RequestHeader(value="Authorization") String Authorization){
+		  
+		    if(!checkAuthority(trancate(Authorization),customer_id) && 
+		    		!checkServiceOwner(trancate(Authorization),servise_id))
+		  		return new ResponseEntity(HttpStatus.FORBIDDEN);
 		  		    
 		    List<Messege> messeges = messegeRepository.findByServiceIdAndCustomerId(servise_id, customer_id);
-		    return messeges;
+		    
+		    return messeges;	
 	  }	 
 	  
 	  @PostMapping("/dialog/save")
 	  public ResponseEntity<Object> saveMessege(@RequestBody Messege messege,
 			  @RequestHeader(value="Authorization") String Authorization){
+		  
+	  	if(!checkAuthority(trancate(Authorization),messege.getCustomerId()) &&
+	  			!checkServiceOwner(trancate(Authorization),messege.getServiceId()))
+	  		return new ResponseEntity(HttpStatus.FORBIDDEN);
+		
 		messege.setTime(LocalDateTime.now());
 		Messege savedMessege = messegeRepository.save(messege);
-	  	URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
+	  	
+		URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
 	  			.buildAndExpand(savedMessege.getId()).toUri();
-	  	if(checkAuthority(trancate(Authorization),messege.getCustomerId(),messege.getServiceId()))
-	  		return ResponseEntity.created(location).build(); 
-	  	else
-	  		return new ResponseEntity(HttpStatus.FORBIDDEN);
+
+	  	
+	  	return ResponseEntity.created(location).build(); 
 	  }
 	  
 	  @GetMapping("/dialog/aquire/all")
@@ -82,10 +93,14 @@ public class ChatController {
 		    List<Messege> messeges = (List<Messege>) messegeRepository.findAll();
 		    return messeges;
 	  }	 
-	  
-	  
+	    
 	  @PostMapping("/comments/save")
-	  public ResponseEntity<Object> saveComment(@RequestBody Comment comment){
+	  public Object saveComment(@RequestBody Comment comment,
+			  @RequestHeader(value="Authorization") String Authorization){
+		  
+	  	if(!checkAuthority(trancate(Authorization),comment.getCustomerId()))
+	  		return new ResponseEntity(HttpStatus.FORBIDDEN);
+		  	
 		comment.setTime(LocalDateTime.now());
 		Comment savedComment = commentRepository.save(comment);
 	  	URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
@@ -118,8 +133,7 @@ public class ChatController {
 		    commentRepository.deleteByCustomerIdAndServiceId(customer_id,service_id);
 		    return HttpStatus.OK;
 	  }	
-	  
-	  
+	    
 	  @DeleteMapping("/comments/delete/{inner_id}")
 	  public HttpStatus deleteCommentById(@PathVariable Long inner_id)
 	  {
@@ -135,8 +149,12 @@ public class ChatController {
 	  }	
 	  
 	  @GetMapping("/dialog/aquire/service/{service_id}")
-	  public List<Messege>  retrieveDialogsWithCustomers
-	    (@PathVariable Long service_id){
+	  public Object retrieveDialogsWithCustomers
+	    (@PathVariable Long service_id,@RequestHeader(value="Authorization") String Authorization){
+		  	
+		  	if(checkServiceOwner(trancate(Authorization),service_id))
+		  		return  new ResponseEntity(HttpStatus.FORBIDDEN);
+		 
 		  		    
 		    List<Messege> messeges = messegeRepository.findByServiceIdOrderByIdDesc(service_id);
 		    
@@ -153,8 +171,31 @@ public class ChatController {
 		    return firstMessagesInTheDialogs;
 	  }	
 	  
+	  @GetMapping("/dialog/aquire/customer/{customer_id}")
+	  public Object retrieveDialogsWithServices
+	    (@PathVariable String customer_id, 
+	    		@RequestHeader(value="Authorization") String Authorization){
+		  	
+		    if(!checkAuthority(trancate(Authorization),customer_id))
+		  		return  new ResponseEntity(HttpStatus.FORBIDDEN);
+		    		    
+		    List<Messege> messeges = messegeRepository.findByCustomerIdOrderByIdDesc(customer_id);
+		    
+		    HashSet<Long> isPresent = new HashSet<Long>();	
+		    List<Messege> firstMessagesInTheDialogs = new ArrayList<Messege>();
+		    
+		    for(Messege m:messeges) {
+		    	if(!isPresent.contains(m.getServiceId())) {
+		    		isPresent.add(m.getServiceId());
+		    		firstMessagesInTheDialogs.add(m);
+		    	}
+		    }
+		    
+		    return firstMessagesInTheDialogs;
+	  }	
 	  
-	  public Boolean checkAuthority(String tokenString,String customerId,Long serviceId) {
+	  
+	  public Boolean checkAuthority(String tokenString,String customerId) {
 		  	try
 		  	{
 		  	  AccessToken token = RSATokenVerifier.create(tokenString).getToken();
@@ -163,7 +204,8 @@ public class ChatController {
 		  	  if(token.getSubject().equals(customerId))
 		  		  return true;
 		  	  else 
-		  		  return checkServiceOwner(serviceId,token.getSubject());
+		  		  return false;
+		  		  //return checkServiceOwner(serviceId, token.getSubject());
 		  	}
 		  	catch (VerificationException e)
 		  	{
@@ -172,11 +214,15 @@ public class ChatController {
 		  	}
 	  }
 	  
-	  public String trancate(String stringToBeTrancated) {		  
+	  /*
+	   * Delete 'Bearer' and spaces
+	   */
+	  
+      public String trancate(String stringToBeTrancated) {		  
 		  return stringToBeTrancated.substring(6).trim();
 	  } 
 	  
-	  public String post(String uri, String json) {   
+	  public String postRequestToSaveRating(String uri, String json) {   
 			   String server = "http://35.244.186.40";
 			   RestTemplate rest = new RestTemplate();
 			   HttpHeaders headers = new HttpHeaders();
@@ -195,14 +241,39 @@ public class ChatController {
 			   return responseEntity.getBody();
 		  }
 	  
+	  
+	  public String getRequestToGetServiceInfo(String uri, Long serviceId) {
+		  
+		    String server = "http://35.244.186.40";
+		    RestTemplate rest = new RestTemplate();
+		    HttpHeaders headers = new HttpHeaders();
+		    
+		    headers.add("Content-Type", "application/json");
+		    headers.add("Accept", "*/*");
+		    
+		    
+		    HttpEntity<String> requestEntity = new HttpEntity<String>("", headers);
+		   
+			System.out.println(requestEntity.getBody());	
+			System.out.println(server + uri);
+			
+			
+		    ResponseEntity<String> responseEntity = rest.exchange( String.format(server + uri,serviceId.toString()), 
+		    		HttpMethod.GET, requestEntity, String.class);
+		    
+		    System.out.println(responseEntity.getBody());		
+		    
+		    return responseEntity.getBody();
+		  }
+	  
 	  public ResponseEntity<String> sendRating(Long serviceId, Double rating) {	
 			String url = String.format("/services/add_mark/%s/%s", serviceId, rating);
 			try {
-				JSONObject obj = new JSONObject(post(url,""));
+				JSONObject obj = new JSONObject(postRequestToSaveRating(url,""));
 				if(obj.getInt("code") == HttpStatus.OK.value()){
 					System.out.println("Status OK");
 				}else {
-					System.out.println("FAILED TO SENT RATING");
+					System.out.println("FAILED TO SEND RATING");
 					throw new Exception();
 				}
 			}
@@ -215,7 +286,16 @@ public class ChatController {
 			return new ResponseEntity<String>(HttpStatus.OK);
 	  }
 	  
-	  public Boolean checkServiceOwner(Long serviceId,String customerId){	  
-		  return true;
+	  public Boolean checkServiceOwner(String tokenString,Long serviceId){	  
+		  
+		  try {
+			JSONObject obj = new JSONObject(getRequestToGetServiceInfo("/services/id?id=%s",serviceId));
+			String ownerId = obj.getJSONObject("result").getString("user_id");
+			System.out.println(ownerId);
+			return checkAuthority(tokenString, ownerId);
+		  } catch (JSONException e) {
+				e.printStackTrace();
+				return false;
+		  }
 	  }
 }
