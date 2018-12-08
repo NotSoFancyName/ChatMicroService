@@ -2,6 +2,7 @@ package com.chat.chat;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -72,14 +73,20 @@ public class ChatController {
 	  
 	  @PostMapping("/dialog/save")
 	  public ResponseEntity<Object> saveMessege(@RequestBody Messege messege,
-			  @RequestHeader(value="Authorization") String Authorization){
+			  @RequestHeader(value="Authorization") String Authorization) throws UnsupportedEncodingException{
 		  
 	  	if(!checkAuthority(trancate(Authorization),messege.getCustomerId()) &&
 	  			!checkServiceOwner(trancate(Authorization),messege.getServiceId()))
 	  		return new ResponseEntity(HttpStatus.FORBIDDEN);
 		
 		messege.setTime(LocalDateTime.now());
+		messege.setMessegeBody(new String(messege.getMessegeBody().getBytes("UTF-8"),"UTF-8"));
+		
+		System.out.println(messege.getMessegeBody());
+		
 		Messege savedMessege = messegeRepository.save(messege);
+		
+		System.out.println(savedMessege.getMessegeBody());
 	  	
 		URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
 	  			.buildAndExpand(savedMessege.getId()).toUri();
@@ -91,6 +98,11 @@ public class ChatController {
 	  @GetMapping("/dialog/aquire/all")
 	  public List<Messege> retrieveAllMesseges(){
 		    List<Messege> messeges = (List<Messege>) messegeRepository.findAll();
+		    
+		    for(Messege m: messeges) {
+				System.out.println(m.getMessegeBody());
+		    }
+		    
 		    return messeges;
 	  }	 
 	    
