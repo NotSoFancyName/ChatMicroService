@@ -12,7 +12,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Entity
-public class Messege {
+public class Message {
 	    @Id
 	    @GeneratedValue(strategy=GenerationType.AUTO)
 	    private Long id;
@@ -26,14 +26,14 @@ public class Messege {
 	     *if false - sent from customer */
 	    private Boolean fromServiceProvider;
 	    
-	    private String messegeBody;
+	    private String messageBody;
 	    
-	    Messege(){}
+	    Message(){}
 	    
-	    Messege(Long serviceId, String customerId, String messegeBody, Boolean fromServiceProvider){
+	    Message(Long serviceId, String customerId, String messageBody, Boolean fromServiceProvider){
 	    	this.serviceId = serviceId;
 	    	this.customerId = customerId;
-	    	this.setMessegeBody(messegeBody);
+	    	this.setMessageBody(messageBody);
 	    	this.setTime(LocalDateTime.now());
 	    	this.fromServiceProvider = fromServiceProvider;
 	    }
@@ -46,12 +46,12 @@ public class Messege {
 			this.fromServiceProvider = fromServiceProvider;
 		}
 
-		public String getMessegeBody() {
-			return messegeBody;
+		public String getMessageBody() {
+			return messageBody;
 		}
 
-		public void setMessegeBody(String messegeBody) {
-			this.messegeBody = messegeBody;
+		public void setMessageBody(String messageBody) {
+			this.messageBody = messageBody;
 		}
 
 		public LocalDateTime getTime() {

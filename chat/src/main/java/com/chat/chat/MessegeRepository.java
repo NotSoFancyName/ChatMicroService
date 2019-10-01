@@ -3,12 +3,12 @@ package com.chat.chat;
 import java.util.List;
 
 import org.springframework.data.repository.CrudRepository;
-import com.chat.chat.Messege;
+import com.chat.chat.Message;
 
-public interface MessegeRepository extends CrudRepository<Messege, Long>{
-	List<Messege> findByServiceIdAndCustomerId(Long serviceId, String customerId);
-	List<Messege> findByServiceId(Long serviceId);
-	List<Messege> findByServiceIdOrderByIdDesc(Long serviceId);
-	List<Messege> findByCustomerIdOrderByIdDesc(String CustomerId);
+public interface MessageRepository extends CrudRepository<Message, Long>{
+	List<Message> findByServiceIdAndCustomerId(Long serviceId, String customerId);
+	List<Message> findByServiceId(Long serviceId);
+	List<Message> findByServiceIdOrderByIdDesc(Long serviceId);
+	List<Message> findByCustomerIdOrderByIdDesc(String CustomerId);
 	void deleteById(Long id);
 }
