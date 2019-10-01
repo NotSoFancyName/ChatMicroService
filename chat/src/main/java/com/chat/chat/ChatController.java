@@ -55,10 +55,10 @@ public class ChatController {
 	  private CommentRepository commentRepository;
 	  
 	  @Autowired
-	  private MessegeRepository messegeRepository;
+	  private MessageRepository messageRepository;
 	  
 	  @GetMapping("/dialog/aquire/service/{servise_id}/customer/{customer_id}")
-	  public Object retrieveMesseges
+	  public Object retrieveMessages
 	    (@PathVariable Long servise_id, @PathVariable String customer_id,
 	    		@RequestHeader(value="Authorization") String Authorization){
 		  
@@ -66,44 +66,44 @@ public class ChatController {
 		    		!checkServiceOwner(trancate(Authorization),servise_id))
 		  		return new ResponseEntity(HttpStatus.FORBIDDEN);
 		  		    
-		    List<Messege> messeges = messegeRepository.findByServiceIdAndCustomerId(servise_id, customer_id);
+		    List<Message> messages = messageRepository.findByServiceIdAndCustomerId(servise_id, customer_id);
 		    
-		    return messeges;	
+		    return messages;	
 	  }	 
 	  
 	  @PostMapping("/dialog/save")
-	  public ResponseEntity<Object> saveMessege(@RequestBody Messege messege,
+	  public ResponseEntity<Object> saveMessage(@RequestBody Message message,
 			  @RequestHeader(value="Authorization") String Authorization) throws UnsupportedEncodingException{
 		  
-	  	if(!checkAuthority(trancate(Authorization),messege.getCustomerId()) &&
-	  			!checkServiceOwner(trancate(Authorization),messege.getServiceId()))
+	  	if(!checkAuthority(trancate(Authorization),message.getCustomerId()) &&
+	  			!checkServiceOwner(trancate(Authorization),message.getServiceId()))
 	  		return new ResponseEntity(HttpStatus.FORBIDDEN);
 		
-		messege.setTime(LocalDateTime.now());
-		messege.setMessegeBody(new String(messege.getMessegeBody().getBytes("UTF-8"),"UTF-8"));
+		message.setTime(LocalDateTime.now());
+		message.setMessageBody(new String(message.getMessageBody().getBytes("UTF-8"),"UTF-8"));
 		
-		System.out.println(messege.getMessegeBody());
+		System.out.println(message.getMessageBody());
 		
-		Messege savedMessege = messegeRepository.save(messege);
+		Message savedMessage = messageRepository.save(message);
 		
-		System.out.println(savedMessege.getMessegeBody());
+		System.out.println(savedMessage.getMessageBody());
 	  	
 		URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}")
-	  			.buildAndExpand(savedMessege.getId()).toUri();
+	  			.buildAndExpand(savedMessage.getId()).toUri();
 
 	  	
 	  	return ResponseEntity.created(location).build(); 
 	  }
 	  
 	  @GetMapping("/dialog/aquire/all")
-	  public List<Messege> retrieveAllMesseges(){
-		    List<Messege> messeges = (List<Messege>) messegeRepository.findAll();
+	  public List<Message> retrieveAllMessages(){
+		    List<Message> messages = (List<Message>) messageRepository.findAll();
 		    
-		    for(Messege m: messeges) {
-				System.out.println(m.getMessegeBody());
+		    for(Message m: messages) {
+				System.out.println(m.getMessageBody());
 		    }
 		    
-		    return messeges;
+		    return messages;
 	  }	 
 	    
 	  @PostMapping("/comments/save")
@@ -154,9 +154,9 @@ public class ChatController {
 	  }	
 	  
 	  @DeleteMapping("/dialog/delete/{inner_id}")
-	  public HttpStatus deleteMessegeById(@PathVariable Long inner_id)
+	  public HttpStatus deleteMessageById(@PathVariable Long inner_id)
 	  {
-		    messegeRepository.deleteById(inner_id);
+		    messageRepository.deleteById(inner_id);
 		    return HttpStatus.OK;
 	  }	
 	  
@@ -168,12 +168,12 @@ public class ChatController {
 		  		return  new ResponseEntity(HttpStatus.FORBIDDEN);
 		 
 		  		    
-		    List<Messege> messeges = messegeRepository.findByServiceIdOrderByIdDesc(service_id);
+		    List<Message> messages = messageRepository.findByServiceIdOrderByIdDesc(service_id);
 		    
 		    HashSet<String> isPresent = new HashSet<String>();	
-		    List<Messege> firstMessagesInTheDialogs = new ArrayList<Messege>();
+		    List<Message> firstMessagesInTheDialogs = new ArrayList<Message>();
 		    
-		    for(Messege m:messeges) {
+		    for(Message m:messages) {
 		    	if(!isPresent.contains(m.getCustomerId())) {
 		    		isPresent.add(m.getCustomerId());
 		    		firstMessagesInTheDialogs.add(m);
@@ -191,12 +191,12 @@ public class ChatController {
 		    if(!checkAuthority(trancate(Authorization),customer_id))
 		  		return  new ResponseEntity(HttpStatus.FORBIDDEN);
 		    		    
-		    List<Messege> messeges = messegeRepository.findByCustomerIdOrderByIdDesc(customer_id);
+		    List<Message> messages = messageRepository.findByCustomerIdOrderByIdDesc(customer_id);
 		    
 		    HashSet<Long> isPresent = new HashSet<Long>();	
-		    List<Messege> firstMessagesInTheDialogs = new ArrayList<Messege>();
+		    List<Message> firstMessagesInTheDialogs = new ArrayList<Message>();
 		    
-		    for(Messege m:messeges) {
+		    for(Message m:messages) {
 		    	if(!isPresent.contains(m.getServiceId())) {
 		    		isPresent.add(m.getServiceId());
 		    		firstMessagesInTheDialogs.add(m);
